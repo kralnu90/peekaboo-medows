@@ -67,6 +67,31 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
 
 .install-link{background:rgba(255,255,255,.8);border:2px solid var(--ink);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;color:var(--ink)}
 /* grown-ups panel */
+.panel-card{max-height:calc(100vh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain}
+.rec-open{display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px;width:100%}
+.rec-open b{display:block;font-size:18px}
+.rec-open small{display:block;font:600 13px/1.3 system-ui,sans-serif;color:#55607a}
+.dot{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:#e8453c;border:3px solid var(--ink)}
+.help{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px;font:15px/1.45 system-ui,sans-serif;color:#33405a}
+.help summary{cursor:pointer;font:600 17px var(--f-kid);color:var(--ink)}
+.help h3{margin:12px 0 4px;font:700 16px var(--f-kid);color:var(--ink)}
+.help p{margin:8px 0 0;font-size:14px}
+.help ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.rec-msg{margin:0;font:600 14px/1.35 system-ui,sans-serif;color:#b23a21;min-height:0}
+.rec-msg:empty{display:none}
+.rec-list{display:grid;gap:8px}
+.rec-group{font:700 15px var(--f-kid);color:#55607a;margin-top:6px;letter-spacing:.02em}
+.rec-row{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px}
+.rec-row svg{width:44px;height:44px}
+.rec-row .line{font:600 15px/1.25 var(--f-kid);color:var(--ink);min-width:0}
+.rec-row .line small{display:block;font:600 12px system-ui,sans-serif;color:#2f8a4f}
+.rec-row .line small.none{color:#8a93a6}
+.rec-btns{grid-column:1/-1;display:flex;gap:6px}
+.rec-btns button{flex:1;font:700 14px var(--f-kid);border:2px solid var(--ink);border-radius:10px;padding:8px 6px;background:var(--cream);color:var(--ink)}
+.rec-btns .r{background:#ffe0d6}
+.rec-btns .r.on{background:#e8453c;color:#fff;animation:recpulse 1s ease-in-out infinite}
+.rec-btns button:disabled{opacity:.4}
+@keyframes recpulse{50%{box-shadow:0 0 0 5px rgba(232,69,60,.25)}}
 .vpick{display:flex;flex-direction:column;gap:6px;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px;font-size:18px;font-weight:600}
 .vpick>span{font:600 13px/1.3 system-ui,sans-serif;color:#55607a}
 .vrow{display:flex;gap:8px}
@@ -132,9 +157,40 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
     <label class="vpick" for="vSel">Voice <span>Pick the one that sounds nicest on this device</span>
       <span class="vrow"><select id="vSel"></select><button type="button" id="vTry">Try it</button></span>
     </label>
+    <button class="rec-open" type="button" id="recOpen"><span class="dot" aria-hidden="true"></span><span><b>Record your own voice</b><small id="recCount">Your little one hears you asking them to find each animal</small></span></button>
+    <button class="tog" type="button" id="tMine" aria-pressed="false" hidden>Use my recordings <i aria-hidden="true"></i></button>
+    <details class="help">
+      <summary>Make the talking voice sound more natural</summary>
+      <p>The talking voice comes from your phone or tablet. Most devices can download better, more human-sounding voices for free. Download one, then come back and pick it under <b>Voice</b> above.</p>
+      <h3>Android</h3>
+      <ol>
+        <li>Open <b>Settings</b> and search for <b>Text-to-speech</b>.</li>
+        <li>Make sure the preferred engine is <b>Speech Services by Google</b>.</li>
+        <li>Tap the gear next to it, then <b>Install voice data</b>.</li>
+        <li>Choose <b>English (United Kingdom)</b>, pick a voice you like and let it download.</li>
+        <li>Come back here, reload the game and choose the new voice.</li>
+      </ol>
+      <h3>iPhone and iPad</h3>
+      <ol>
+        <li>Open <b>Settings</b>, then <b>Accessibility</b>, then <b>Spoken Content</b>, then <b>Voices</b>.</li>
+        <li>Tap <b>English</b>, then pick a voice marked <b>Enhanced</b> or <b>Premium</b> and download it.</li>
+        <li>Come back here, reload the game and choose the new voice.</li>
+      </ol>
+      <p>Wording of menus varies a little between phone makers. If a voice doesn't show up, restart the browser and try again.</p>
+    </details>
     <button class="tog" type="button" id="tFind" aria-pressed="true">Find-the-animal game <i aria-hidden="true"></i></button>
     <button class="tog" type="button" data-install>Install on this device <span aria-hidden="true">⬇</span></button>
     <button class="done" type="button" id="panelDone">Back to the meadow</button>
+  </div>
+</div>
+
+<div class="panel" id="recPanel" hidden role="dialog" aria-modal="true" aria-labelledby="recH">
+  <div class="panel-card">
+    <h2 id="recH">Record your own voice</h2>
+    <p>Tap <b>Record</b>, say the line, then tap <b>Stop</b> (it stops by itself after 4 seconds). Tap <b>Play</b> to hear it back. Anything you don't record uses the device voice instead. Recordings stay on this device only.</p>
+    <p class="rec-msg" id="recMsg" role="status"></p>
+    <div class="rec-list" id="recList"></div>
+    <button class="done" type="button" id="recDone">Done</button>
   </div>
 </div>
 
@@ -151,7 +207,7 @@ function anim(el,kf,o){try{return el.animate(kf,Object.assign({fill:'none'},o,re
 const later=(ms,f)=>setTimeout(f,ms);
 
 /* settings */
-let opts={sound:true,voice:true,find:true};
+let opts={sound:true,voice:true,find:true,mine:false};
 try{Object.assign(opts,JSON.parse(localStorage.getItem('peekaboo-opts')||'{}'))}catch(e){}
 const saveOpts=()=>{try{localStorage.setItem('peekaboo-opts',JSON.stringify(opts))}catch(e){}};
 
@@ -265,6 +321,17 @@ function pickVoice(){const vs=englishVoices();voice=(opts.voiceName&&vs.find(v=>
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function say(t){if(!opts.voice)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(voice)u.voice=voice;u.lang=voice?voice.lang:'en-GB';
   const natural=voice&&/natural|neural|online|enhanced|premium|siri|wavenet/i.test(voice.name);u.rate=natural?.95:.92;u.pitch=natural?1.05:1.1;u.volume=1;speechSynthesis.speak(u)}catch(e){}}
+/* recorded voice clips, kept in IndexedDB on this device */
+const clips=new Map();let clipAudio=null;
+const VDB={p:null,open(){if(!this.p)this.p=new Promise((res,rej)=>{try{const r=indexedDB.open('peekaboo-voice',1);r.onupgradeneeded=()=>r.result.createObjectStore('clips');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});return this.p},
+  async tx(mode,fn){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('clips',mode),st=t.objectStore('clips');const out=fn(st);t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error)})},
+  put(k,v){return this.tx('readwrite',st=>st.put(v,k))},del(k){return this.tx('readwrite',st=>st.delete(k))},
+  async all(){const db=await this.open();return new Promise((res,rej)=>{const out=[],t=db.transaction('clips'),c=t.objectStore('clips').openCursor();c.onsuccess=()=>{const cur=c.result;if(cur){out.push([cur.key,cur.value]);cur.continue()}else res(out)};c.onerror=()=>rej(c.error)})}};
+function setClip(k,blob){const old=clips.get(k);if(old)URL.revokeObjectURL(old);if(blob)clips.set(k,URL.createObjectURL(blob));else clips.delete(k)}
+VDB.all().then(rows=>{rows.forEach(([k,b])=>setClip(k,b));updateRecCount()}).catch(()=>{});
+function playClip(k){const url=clips.get(k);if(!url)return false;try{speechSynthesis.cancel()}catch(e){}if(clipAudio){clipAudio.pause()}clipAudio=new Audio(url);clipAudio.play().catch(()=>{});return true}
+/* say a line: the grown-up's own recording if there is one, otherwise the device voice */
+function speak(key,text,quietIfMissing){if(!opts.voice)return;if(opts.mine&&clips.has(key)){playClip(key);return}if(opts.mine&&quietIfMissing&&clips.size)return;say(text)}
 /* a few ways to say each thing, so it doesn't sound like a recording on repeat */
 const LINES={
   ask:a=>pick([`Can you find the ${a}?`,`Where's the ${a} hiding?`,`Let's find the ${a}!`,`Can you see the ${a}?`]),
@@ -410,13 +477,13 @@ const bushBusy=[false,false,false];
 function tapBush(b,found){anim(b.inner,[{transform:'rotate(0)'},{transform:'rotate(-5deg)'},{transform:'rotate(4deg)'},{transform:'rotate(-2deg)'},{transform:'rotate(0)'}],{duration:500});SFX.rustle();
   if(bushBusy[b.idx])return;bushBusy[b.idx]=true;const who=bushAnimals[b.idx],hold=found?2200:1200;
   anim(b.pop,[{transform:'translate(0px,48px)'},{transform:'translate(0px,-96px)',offset:.18,easing:'ease-out'},{transform:'translate(0px,-84px)',offset:.26},{transform:'translate(0px,-84px)',offset:.8},{transform:'translate(0px,48px)'}],{duration:hold+900,delay:150,easing:'ease-in'}).finished.then(()=>bushBusy[b.idx]=false);
-  later(260,()=>{ANIMAL_SFX[who]();if(!found)say(LINES.name(NAMES[who]))})}
+  later(260,()=>{ANIMAL_SFX[who]();if(!found)speak('name-'+who,LINES.name(NAMES[who]),true)})}
 
 let frogBusy=false;
 function tapPond(found,pt){if(pt){const r=S('ellipse',{cx:pt.x,cy:pt.y,rx:4,ry:1.5,fill:'none',stroke:'#fff','stroke-width':3,opacity:.9},E.fx);anim(r,[{transform:`translate(${pt.x}px,${pt.y}px) scale(1) translate(${-pt.x}px,${-pt.y}px)`,opacity:.9},{transform:`translate(${pt.x}px,${pt.y}px) scale(14) translate(${-pt.x}px,${-pt.y}px)`,opacity:0}],{duration:900}).finished.then(()=>r.remove())}
   SFX.splash();if(frogBusy)return;frogBusy=true;
   anim(E.frogInner,[{transform:'translate(0,0) scale(1,1)'},{transform:'translate(0,0) scale(1.2,.8)',offset:.12},{transform:'translate(-40px,-190px) scale(.9,1.15) rotate(-15deg)',offset:.5,easing:'ease-in'},{transform:'translate(0,0) scale(1.2,.85)',offset:.85},{transform:'translate(0,0) scale(1,1)'}],{duration:found?1500:1200,easing:'ease-out'}).finished.then(()=>frogBusy=false);
-  later(120,SFX.ribbit);if(!found)later(400,()=>say(pick(['Ribbit! A frog!','Hello, froggy!','Boing! A frog!'])))}
+  later(120,SFX.ribbit);if(!found)later(400,()=>speak('name-frog',pick(['Ribbit! A frog!','Hello, froggy!','Boing! A frog!']),true))}
 
 function balloon(x,y){const cols=['#ff6b4a','#ffd23f','#5bc0eb','#c38bff','#6cbf4a','#ff8fc7'];const c=pick(cols),sc=U/100*rnd(.9,1.2);
   const g=S('g',{'data-hit':'balloon'},E.fx);place(g,x,y,sc);const i=S('g',null,g);
@@ -441,22 +508,22 @@ function whereIs(a){if(a==='frog')return{type:'pond'};if(a==='bird')return{type:
 function reshuffle(){bushAnimals=shuffle(['bunny','hedgehog','fox']);(E.bushes||[]).forEach((b,i)=>b.use.setAttribute('href','#a-'+bushAnimals[i]))}
 function nextPrompt(){if(!opts.find){want=null;$('ask').hidden=true;return}
   want=pick(ANIMALS.filter(a=>a!==lastWant));lastWant=want;$('askUse').setAttribute('href','#a-'+want);const ask=$('ask');ask.hidden=false;ask.classList.remove('wiggle');void ask.offsetWidth;ask.classList.add('wiggle');
-  say(LINES.ask(NAMES[want]));lastTap=Date.now()}
+  speak('ask-'+want,LINES.ask(NAMES[want]));lastTap=Date.now()}
 function svgPtFromClient(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;return p.matrixTransform(svg.getScreenCTM().inverse())}
 function foundIt(at){const name=want;want=null;stars++;
-  confetti(at.x,at.y,22);SFX.cheer();later(250,()=>say(LINES.found(NAMES[name])));
+  confetti(at.x,at.y,22);SFX.cheer();later(250,()=>speak('found-'+name,LINES.found(NAMES[name])));
   const slot=jar.children[stars-1].getBoundingClientRect(),tgt=svgPtFromClient(slot.left+slot.width/2,slot.top+slot.height/2);
   const st=fxAt(at.x,at.y,U/25);S('use',{href:'#star',fill:'#ffd23f',stroke:'#e09a00','stroke-width':1.5},st);
   anim(st,[{transform:'translate(0,0) scale(1) rotate(0)'},{transform:`translate(${(tgt.x-at.x)/(U/25)*.5}px,${(tgt.y-at.y)/(U/25)*.5-40}px) scale(1.6) rotate(180deg)`},{transform:`translate(${(tgt.x-at.x)/(U/25)}px,${(tgt.y-at.y)/(U/25)}px) scale(.5) rotate(360deg)`}],{duration:1100,delay:500,easing:'ease-in-out',fill:'forwards'}).finished.then(()=>{st._outer.remove();drawJar()});
   if(stars>=5)later(2600,party);else later(3200,()=>{reshuffle();nextPrompt()})}
-function party(){$('ask').hidden=true;SFX.fanfare();say(pick(['Hooray! Five stars! You are amazing!','Wow, five stars! Party time!','Five stars! You are a super finder!']));
+function party(){$('ask').hidden=true;SFX.fanfare();speak('party',pick(['Hooray! Five stars! You are amazing!','Wow, five stars! Party time!','Five stars! You are a super finder!']));
   for(let k=0;k<12;k++)later(k*180,()=>{const b=balloon(rnd(W*0.05,W*0.95),H+40);});
   for(let k=0;k<4;k++)later(k*400,()=>confetti(rnd(W*0.2,W*0.8),rnd(H*0.15,H*0.45),26));
   later(5200,()=>{stars=0;drawJar();reshuffle();nextPrompt()})}
 setInterval(()=>{if(!started||!want||document.hidden)return;if(Date.now()-lastTap<9000)return;lastTap=Date.now();
   const w=whereIs(want);const g=w.type==='bush'?E.bushes[w.i]:w.type==='pond'?E.pond:E.tree;
   anim(g.inner,[{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:900});
-  const p=w.type==='tree'?gpos(g,60,-300):gpos(g,0,-60);sparkle(p.x,p.y);say(LINES.hint(NAMES[want]))},1000);
+  const p=w.type==='tree'?gpos(g,60,-300):gpos(g,0,-60);sparkle(p.x,p.y);speak('ask-'+want,LINES.hint(NAMES[want]))},1000);
 
 /* ---------- input ---------- */
 svg.addEventListener('pointerdown',e=>{if(!started)return;e.preventDefault();lastTap=Date.now();A();
@@ -477,7 +544,7 @@ svg.addEventListener('pointerdown',e=>{if(!started)return;e.preventDefault();las
   if(found)foundIt(type==='tree'?gpos(E.tree,60,-300):type==='pond'?gpos(E.pond,44,-40):gpos(hit,0,-150))});
 svg.addEventListener('contextmenu',e=>e.preventDefault());
 
-$('ask').onclick=()=>{if(!want)return;const a=$('ask');a.classList.remove('wiggle');void a.offsetWidth;a.classList.add('wiggle');say(LINES.ask(NAMES[want]));SFX.pop()};
+$('ask').onclick=()=>{if(!want)return;const a=$('ask');a.classList.remove('wiggle');void a.offsetWidth;a.classList.add('wiggle');speak('ask-'+want,LINES.ask(NAMES[want]));SFX.pop()};
 $('playBtn').onclick=()=>{A();SFX.cheer();started=true;$('start').hidden=true;drawJar();
   try{const u=new SpeechSynthesisUtterance('');speechSynthesis.speak(u)}catch(e){}
   if(opts.find)later(500,nextPrompt);else later(300,()=>say('Tap anything!'));
@@ -485,11 +552,11 @@ $('playBtn').onclick=()=>{A();SFX.cheer();started=true;$('start').hidden=true;dr
 
 /* grown-up gear: press and hold */
 const gear=$('gear');let holdT=null;
-function openPanel(){$('panel').hidden=false;['Sound','Voice','Find'].forEach(k=>$('t'+k).setAttribute('aria-pressed',String(opts[k.toLowerCase()])));$('tSound').focus()}
+function openPanel(){$('panel').hidden=false;['Sound','Voice','Find','Mine'].forEach(k=>$('t'+k).setAttribute('aria-pressed',String(!!opts[k.toLowerCase()])));updateRecCount();$('tSound').focus()}
 gear.addEventListener('pointerdown',e=>{e.preventDefault();gear.classList.add('holding');holdT=setTimeout(()=>{gear.classList.remove('holding');openPanel()},900)});
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>gear.addEventListener(ev,()=>{clearTimeout(holdT);gear.classList.remove('holding')}));
 gear.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPanel()}});
-['Sound','Voice','Find'].forEach(k=>$('t'+k).onclick=()=>{const key=k.toLowerCase();opts[key]=!opts[key];$('t'+k).setAttribute('aria-pressed',String(opts[key]));saveOpts();
+['Sound','Voice','Find','Mine'].forEach(k=>$('t'+k).onclick=()=>{const key=k.toLowerCase();opts[key]=!opts[key];$('t'+k).setAttribute('aria-pressed',String(opts[key]));saveOpts();
   if(key==='voice'&&!opts.voice){try{speechSynthesis.cancel()}catch(e){}}});
 $('panelDone').onclick=()=>{$('panel').hidden=true;drawJar();if(opts.find&&!want&&started)nextPrompt();if(!opts.find){want=null;$('ask').hidden=true}};
 
@@ -498,6 +565,44 @@ function fillVoiceList(){const sel=document.getElementById('vSel');if(!sel)retur
   sel.disabled=false;vs.slice(0,25).forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name.replace(/^(Microsoft|Google)\s+/,'').replace(/\s+Online\s+\(Natural\)/,' (natural)')+' · '+v.lang;if(voice&&v.name===voice.name)o.selected=true;sel.appendChild(o)})}
 $('vSel').onchange=e=>{opts.voiceName=e.target.value;saveOpts();pickVoice();say(pick(['Hello! Can you find the bunny?','Hi there! Let\'s play!']))};
 $('vTry').onclick=()=>{const was=opts.voice;opts.voice=true;say('Hello! Can you find the bunny?');opts.voice=was};
+/* ---------- record your own voice ---------- */
+const SLOTS=[{g:'Asking',items:ANIMALS.map(a=>({k:'ask-'+a,a,t:`Can you find the ${NAMES[a]}?`}))},
+  {g:'Well done',items:ANIMALS.map(a=>({k:'found-'+a,a,t:`You found the ${NAMES[a]}!`})).concat([{k:'party',a:null,t:'Five stars! Hooray!'}])},
+  {g:'Animal names (optional, for free play)',items:ANIMALS.map(a=>({k:'name-'+a,a,t:`A ${NAMES[a]}!`}))}];
+const ALLSLOTS=SLOTS.flatMap(g=>g.items);
+function updateRecCount(){const n=ALLSLOTS.filter(x=>clips.has(x.k)).length;const el=$('recCount');if(el)el.textContent=n?`${n} of ${ALLSLOTS.length} lines recorded`:'Your little one hears you asking them to find each animal';
+  $('tMine').hidden=!n;$('tMine').setAttribute('aria-pressed',String(!!opts.mine))}
+let mic=null,rec=null,recKey=null,recTimer=null;
+const canRecord=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
+function recMsg(t){$('recMsg').textContent=t||''}
+function renderRec(){const list=$('recList');list.innerHTML='';
+  SLOTS.forEach(grp=>{const h=document.createElement('div');h.className='rec-group';h.textContent=grp.g;list.appendChild(h);
+    grp.items.forEach(it=>{const has=clips.has(it.k),on=recKey===it.k;const row=document.createElement('div');row.className='rec-row';
+      row.innerHTML=(it.a?`<svg viewBox="-70 -150 140 160" aria-hidden="true"><use href="#a-${it.a}"/></svg>`:`<svg viewBox="-12 -12 24 24" aria-hidden="true"><use href="#star" fill="#ffd23f" stroke="#e09a00"/></svg>`)+
+        `<div class="line">"${it.t}"<small class="${has?'':'none'}">${on?'Recording… speak now':has?'Recorded':'Not recorded'}</small></div>
+        <div class="rec-btns"><button type="button" class="r${on?' on':''}" data-r="${it.k}" ${canRecord&&(!recKey||on)?'':'disabled'}>${on?'■ Stop':'● Record'}</button>
+        <button type="button" data-p="${it.k}" ${has&&!recKey?'':'disabled'}>▶ Play</button><button type="button" data-d="${it.k}" ${has&&!recKey?'':'disabled'} aria-label="Delete recording">✕</button></div>`;
+      list.appendChild(row)})});
+  if(!canRecord)recMsg("This browser can't record sound. Open the game in Chrome or Safari from kralnugames.com to record your voice.")}
+async function startRec(k){recMsg('');try{mic=mic||await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}
+  catch(e){recMsg(e&&e.name==='NotAllowedError'?"The microphone is blocked. Allow it for this site in your browser's settings, then try again.":"Couldn't reach the microphone. Check nothing else is using it and try again.");return}
+  try{speechSynthesis.cancel()}catch(e){}if(clipAudio)clipAudio.pause();
+  const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'].find(m=>{try{return MediaRecorder.isTypeSupported(m)}catch(e){return false}})||'';
+  const chunks=[];try{rec=new MediaRecorder(mic,mime?{mimeType:mime}:undefined)}catch(e){recMsg("Recording isn't supported in this browser.");return}
+  recKey=k;rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+  rec.onstop=async()=>{clearTimeout(recTimer);const key=recKey;recKey=null;const blob=new Blob(chunks,{type:rec.mimeType||mime||'audio/webm'});
+    if(blob.size<800){recMsg("That one came out empty. Try again a little closer to the phone.");renderRec();return}
+    try{await VDB.put(key,blob)}catch(e){recMsg("Couldn't save that recording on this device.")}
+    setClip(key,blob);if(!opts.mine){opts.mine=true;saveOpts()}updateRecCount();renderRec();playClip(key)};
+  rec.start();recTimer=setTimeout(stopRec,4000);renderRec()}
+function stopRec(){clearTimeout(recTimer);if(rec&&rec.state==='recording')rec.stop()}
+function releaseMic(){stopRec();if(mic){mic.getTracks().forEach(t=>t.stop());mic=null}}
+$('recList').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.dataset.r){if(recKey===b.dataset.r)stopRec();else startRec(b.dataset.r)}
+  else if(b.dataset.p)playClip(b.dataset.p);
+  else if(b.dataset.d){const k=b.dataset.d;try{await VDB.del(k)}catch(err){}setClip(k,null);updateRecCount();renderRec()}});
+$('recOpen').onclick=()=>{$('panel').hidden=true;$('recPanel').hidden=false;recMsg('');renderRec()};
+$('recDone').onclick=()=>{releaseMic();$('recPanel').hidden=true;$('panel').hidden=false;updateRecCount()};
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(layout,150)});
 layout();drawJar();
 /* ambient life: a butterfly now and then, and a gentle rustle as a clue */

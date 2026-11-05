@@ -7,6 +7,8 @@ Everything in the meadow does something when you tap it: animals pop out of the 
 - No ads, no chat, nothing to buy, no data collected
 - Works in any phone or tablet browser
 - A press-and-hold grown-ups button turns the sounds, the voice and the find-it game on or off
+- **Record your own voice:** grown-ups can record the lines ("Can you find the bunny?", "You found the bunny!") so little ones hear a familiar voice. Recordings stay on the device
+- A voice chooser, plus step-by-step help for downloading better voices on Android and iPhone
 
 ## Play
 
