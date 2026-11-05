@@ -6,7 +6,13 @@
 <title>Peekaboo Meadow</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A gentle tap-and-find game for little ones. Animals hide in the meadow, everything you tap does something, and nobody ever loses.">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#bfe6ff">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Peekaboo">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap">
@@ -59,6 +65,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
 @keyframes breathe{50%{transform:scale(1.06)}}
 .start p{margin:0;font-size:17px;font-weight:600;color:#3a4a66;max-width:30ch}
 
+.install-link{background:rgba(255,255,255,.8);border:2px solid var(--ink);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;color:var(--ink)}
 /* grown-ups panel */
 .panel{position:fixed;inset:0;display:grid;place-items:center;background:rgba(32,48,74,.45);padding:20px}
 .panel-card{background:var(--cream);border:4px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 var(--ink);padding:20px 20px 18px;width:min(360px,100%);display:flex;flex-direction:column;gap:12px}
@@ -107,6 +114,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.9l14-8.5a1 1 0 0 0 0-1.8l-14-8.5A1 1 0 0 0 5 3.5z" fill="#fff" stroke="#20304a" stroke-width="1.5" stroke-linejoin="round"/></svg>
     </button>
     <p>Tap anything in the meadow. Turn the sound up!</p>
+    <button class="install-link" type="button" data-install>Grown-ups: install on this device</button>
   </div>
 </div>
 
@@ -117,6 +125,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
     <button class="tog" type="button" id="tSound" aria-pressed="true">Sounds <i aria-hidden="true"></i></button>
     <button class="tog" type="button" id="tVoice" aria-pressed="true">Talking voice <i aria-hidden="true"></i></button>
     <button class="tog" type="button" id="tFind" aria-pressed="true">Find-the-animal game <i aria-hidden="true"></i></button>
+    <button class="tog" type="button" data-install>Install on this device <span aria-hidden="true">⬇</span></button>
     <button class="done" type="button" id="panelDone">Back to the meadow</button>
   </div>
 </div>
@@ -467,5 +476,43 @@ layout();drawJar();
 setInterval(()=>{if(!started||document.hidden)return;if(Math.random()<.5)butterfly(rnd(W*0.1,W*0.9),rnd(gY,H-U));},7000);
 })();
 </script>
+
+<!-- Kralnu Games install kit: Install button, Android/desktop prompt and iPhone instructions -->
+<style id="kg-install-style">
+html:not(.kg-can-install) [data-install]{display:none!important}
+.kg-sheet{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:2147483000;width:min(420px,calc(100% - 24px));background:#fff8e6;color:#20304a;border:2px solid #20304a;border-radius:16px;padding:14px 16px;box-shadow:0 12px 30px rgba(0,0,0,.35);font:15px/1.45 'Fredoka',system-ui,sans-serif;display:grid;gap:10px;text-align:left}
+.kg-sheet b{font-size:17px}
+.kg-sheet p{margin:0}
+.kg-row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.kg-row button{font:inherit;font-weight:700;border-radius:999px;padding:9px 16px;cursor:pointer;border:2px solid #20304a;background:transparent;color:inherit}
+.kg-row .kg-yes{background:#ff6b4a;border-color:#ff6b4a;color:#ffffff}
+.kg-row button:focus-visible{outline:3px solid #ff6b4a;outline-offset:2px}
+</style>
+<script id="kg-install">
+(function(){
+  var NAME='Peekaboo Meadow',KEY='pb-install-snooze',AUTO=0;
+  var evt=null,sheet=null,root=document.documentElement;
+  var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  function standalone(){return matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true}
+  function can(){return !standalone()&&(!!evt||ios)}
+  function sync(){root.classList.toggle('kg-can-install',can())}
+  function snoozed(){try{return Date.now()<(+localStorage.getItem(KEY)||0)}catch(e){return false}}
+  function snooze(days){try{localStorage.setItem(KEY,String(Date.now()+days*864e5))}catch(e){}}
+  function close(){if(sheet){sheet.remove();sheet=null}}
+  function show(auto){close();var iosHelp=!evt&&ios;sheet=document.createElement('div');sheet.className='kg-sheet';sheet.setAttribute('role','dialog');sheet.setAttribute('aria-label','Install '+NAME);
+    sheet.innerHTML='<b>Install '+NAME+'?</b><p>'+(iosHelp?'In Safari, tap the <b>Share</b> button, then <b>Add to Home Screen</b>. It then opens full screen and works offline.':'Put it on your home screen and play full screen like a proper app, even without a signal.')+'</p><div class="kg-row"><button type="button" class="kg-no">'+(iosHelp?'Got it':'Not now')+'</button>'+(iosHelp?'':'<button type="button" class="kg-yes">Install</button>')+'</div>';
+    document.body.appendChild(sheet);
+    sheet.querySelector('.kg-no').onclick=function(){snooze(auto?3:1);close()};
+    var y=sheet.querySelector('.kg-yes');if(y){y.onclick=install;y.focus()}}
+  function install(){close();var e=evt;evt=null;if(!e){sync();return}e.prompt();Promise.resolve(e.userChoice).then(sync,sync)}
+  addEventListener('beforeinstallprompt',function(e){e.preventDefault();evt=e;sync();if(AUTO&&!snoozed())setTimeout(function(){if(evt&&!sheet&&!standalone())show(true)},AUTO)});
+  addEventListener('appinstalled',function(){evt=null;sync();close()});
+  document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('[data-install]');if(!b)return;e.preventDefault();e.stopPropagation();if(evt)install();else if(ios)show(false)},true);
+  sync();
+  window.KralnuInstall={can:can,open:function(){show(false)}};
+  if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+})();
+</script>
+
 </body>
 </html>
