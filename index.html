@@ -67,6 +67,11 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
 
 .install-link{background:rgba(255,255,255,.8);border:2px solid var(--ink);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;color:var(--ink)}
 /* grown-ups panel */
+.vpick{display:flex;flex-direction:column;gap:6px;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px;font-size:18px;font-weight:600}
+.vpick>span{font:600 13px/1.3 system-ui,sans-serif;color:#55607a}
+.vrow{display:flex;gap:8px}
+.vrow select{flex:1;min-width:0;font:600 15px system-ui,sans-serif;padding:8px;border:2px solid var(--ink);border-radius:10px;background:var(--cream);color:var(--ink)}
+.vrow button{font:700 15px var(--f-kid);border:2px solid var(--ink);border-radius:10px;background:var(--sun);color:var(--ink);padding:8px 12px}
 .panel{position:fixed;inset:0;display:grid;place-items:center;background:rgba(32,48,74,.45);padding:20px}
 .panel-card{background:var(--cream);border:4px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 var(--ink);padding:20px 20px 18px;width:min(360px,100%);display:flex;flex-direction:column;gap:12px}
 .panel h2{margin:0;font-size:26px}
@@ -124,6 +129,9 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:3px}
     <p>Everything here is free, with no ads, no chat and nothing to buy. Progress stays on this device.</p>
     <button class="tog" type="button" id="tSound" aria-pressed="true">Sounds <i aria-hidden="true"></i></button>
     <button class="tog" type="button" id="tVoice" aria-pressed="true">Talking voice <i aria-hidden="true"></i></button>
+    <label class="vpick" for="vSel">Voice <span>Pick the one that sounds nicest on this device</span>
+      <span class="vrow"><select id="vSel"></select><button type="button" id="vTry">Try it</button></span>
+    </label>
     <button class="tog" type="button" id="tFind" aria-pressed="true">Find-the-animal game <i aria-hidden="true"></i></button>
     <button class="tog" type="button" data-install>Install on this device <span aria-hidden="true">⬇</span></button>
     <button class="done" type="button" id="panelDone">Back to the meadow</button>
@@ -246,9 +254,24 @@ const ANIMAL_SFX={bunny:()=>SFX.squeak(760),hedgehog:SFX.snuffle,fox:SFX.yip,fro
 
 /* ---------- voice ---------- */
 let voice=null;
-function pickVoice(){try{const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en-GB/i.test(v.lang)&&/female|libby|sonia|serena|kate|martha|google uk english female/i.test(v.name))||vs.find(v=>/en-GB/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}catch(e){}}
+/* Pick the most natural voice this device has. Neural and "enhanced" voices sound far more human than the basic ones. */
+const NOVELTY=/albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|deranged|hysterical|pipe organ|espeak|compact/i;
+function voiceScore(v){let s=0;if(/^en[-_]GB/i.test(v.lang))s+=4;else if(/^en[-_](IE|AU|NZ)/i.test(v.lang))s+=2;else if(/^en/i.test(v.lang))s+=1;else return -99;
+  if(/natural|neural|online|enhanced|premium|siri|wavenet/i.test(v.name))s+=8;
+  if(/sonia|libby|maisie|serena|kate|stephanie|martha|hazel|susan|google uk english female|samantha|karen|moira|tessa|fiona|ava|allison/i.test(v.name))s+=3;
+  if(/google/i.test(v.name))s+=2;if(NOVELTY.test(v.name))s-=50;if(v.localService===false)s+=1;return s}
+function englishVoices(){try{return speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)&&!NOVELTY.test(v.name)).sort((a,b)=>voiceScore(b)-voiceScore(a))}catch(e){return[]}}
+function pickVoice(){const vs=englishVoices();voice=(opts.voiceName&&vs.find(v=>v.name===opts.voiceName))||vs[0]||null;fillVoiceList()}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
-function say(t){if(!opts.voice)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(voice)u.voice=voice;u.lang=voice?voice.lang:'en-GB';u.rate=.9;u.pitch=1.25;speechSynthesis.speak(u)}catch(e){}}
+function say(t){if(!opts.voice)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(voice)u.voice=voice;u.lang=voice?voice.lang:'en-GB';
+  const natural=voice&&/natural|neural|online|enhanced|premium|siri|wavenet/i.test(voice.name);u.rate=natural?.95:.92;u.pitch=natural?1.05:1.1;u.volume=1;speechSynthesis.speak(u)}catch(e){}}
+/* a few ways to say each thing, so it doesn't sound like a recording on repeat */
+const LINES={
+  ask:a=>pick([`Can you find the ${a}?`,`Where's the ${a} hiding?`,`Let's find the ${a}!`,`Can you see the ${a}?`]),
+  found:a=>pick([`Yay! You found the ${a}!`,`Well done! There's the ${a}!`,`Hooray, it's the ${a}!`,`You did it! Hello, ${a}!`]),
+  hint:a=>pick([`Where could the ${a} be? Have a look!`,`Hmm, I wonder where the ${a} is.`,`The ${a} is hiding somewhere. Can you find it?`]),
+  name:a=>pick([`A ${a}!`,`Oh, it's a ${a}!`,`Hello, ${a}!`,`Look, a ${a}!`])
+};
 
 /* ---------- layout ---------- */
 let W=1000,H=1000,U=100,gY=600,portrait=false;
@@ -387,13 +410,13 @@ const bushBusy=[false,false,false];
 function tapBush(b,found){anim(b.inner,[{transform:'rotate(0)'},{transform:'rotate(-5deg)'},{transform:'rotate(4deg)'},{transform:'rotate(-2deg)'},{transform:'rotate(0)'}],{duration:500});SFX.rustle();
   if(bushBusy[b.idx])return;bushBusy[b.idx]=true;const who=bushAnimals[b.idx],hold=found?2200:1200;
   anim(b.pop,[{transform:'translate(0px,48px)'},{transform:'translate(0px,-96px)',offset:.18,easing:'ease-out'},{transform:'translate(0px,-84px)',offset:.26},{transform:'translate(0px,-84px)',offset:.8},{transform:'translate(0px,48px)'}],{duration:hold+900,delay:150,easing:'ease-in'}).finished.then(()=>bushBusy[b.idx]=false);
-  later(260,()=>{ANIMAL_SFX[who]();if(!found)say(`A ${NAMES[who]}!`)})}
+  later(260,()=>{ANIMAL_SFX[who]();if(!found)say(LINES.name(NAMES[who]))})}
 
 let frogBusy=false;
 function tapPond(found,pt){if(pt){const r=S('ellipse',{cx:pt.x,cy:pt.y,rx:4,ry:1.5,fill:'none',stroke:'#fff','stroke-width':3,opacity:.9},E.fx);anim(r,[{transform:`translate(${pt.x}px,${pt.y}px) scale(1) translate(${-pt.x}px,${-pt.y}px)`,opacity:.9},{transform:`translate(${pt.x}px,${pt.y}px) scale(14) translate(${-pt.x}px,${-pt.y}px)`,opacity:0}],{duration:900}).finished.then(()=>r.remove())}
   SFX.splash();if(frogBusy)return;frogBusy=true;
   anim(E.frogInner,[{transform:'translate(0,0) scale(1,1)'},{transform:'translate(0,0) scale(1.2,.8)',offset:.12},{transform:'translate(-40px,-190px) scale(.9,1.15) rotate(-15deg)',offset:.5,easing:'ease-in'},{transform:'translate(0,0) scale(1.2,.85)',offset:.85},{transform:'translate(0,0) scale(1,1)'}],{duration:found?1500:1200,easing:'ease-out'}).finished.then(()=>frogBusy=false);
-  later(120,SFX.ribbit);if(!found)later(400,()=>say('Ribbit! A frog!'))}
+  later(120,SFX.ribbit);if(!found)later(400,()=>say(pick(['Ribbit! A frog!','Hello, froggy!','Boing! A frog!'])))}
 
 function balloon(x,y){const cols=['#ff6b4a','#ffd23f','#5bc0eb','#c38bff','#6cbf4a','#ff8fc7'];const c=pick(cols),sc=U/100*rnd(.9,1.2);
   const g=S('g',{'data-hit':'balloon'},E.fx);place(g,x,y,sc);const i=S('g',null,g);
@@ -418,22 +441,22 @@ function whereIs(a){if(a==='frog')return{type:'pond'};if(a==='bird')return{type:
 function reshuffle(){bushAnimals=shuffle(['bunny','hedgehog','fox']);(E.bushes||[]).forEach((b,i)=>b.use.setAttribute('href','#a-'+bushAnimals[i]))}
 function nextPrompt(){if(!opts.find){want=null;$('ask').hidden=true;return}
   want=pick(ANIMALS.filter(a=>a!==lastWant));lastWant=want;$('askUse').setAttribute('href','#a-'+want);const ask=$('ask');ask.hidden=false;ask.classList.remove('wiggle');void ask.offsetWidth;ask.classList.add('wiggle');
-  say(`Can you find the ${NAMES[want]}?`);lastTap=Date.now()}
+  say(LINES.ask(NAMES[want]));lastTap=Date.now()}
 function svgPtFromClient(cx,cy){const p=svg.createSVGPoint();p.x=cx;p.y=cy;return p.matrixTransform(svg.getScreenCTM().inverse())}
 function foundIt(at){const name=want;want=null;stars++;
-  confetti(at.x,at.y,22);SFX.cheer();later(250,()=>say(`Yay! You found the ${NAMES[name]}!`));
+  confetti(at.x,at.y,22);SFX.cheer();later(250,()=>say(LINES.found(NAMES[name])));
   const slot=jar.children[stars-1].getBoundingClientRect(),tgt=svgPtFromClient(slot.left+slot.width/2,slot.top+slot.height/2);
   const st=fxAt(at.x,at.y,U/25);S('use',{href:'#star',fill:'#ffd23f',stroke:'#e09a00','stroke-width':1.5},st);
   anim(st,[{transform:'translate(0,0) scale(1) rotate(0)'},{transform:`translate(${(tgt.x-at.x)/(U/25)*.5}px,${(tgt.y-at.y)/(U/25)*.5-40}px) scale(1.6) rotate(180deg)`},{transform:`translate(${(tgt.x-at.x)/(U/25)}px,${(tgt.y-at.y)/(U/25)}px) scale(.5) rotate(360deg)`}],{duration:1100,delay:500,easing:'ease-in-out',fill:'forwards'}).finished.then(()=>{st._outer.remove();drawJar()});
   if(stars>=5)later(2600,party);else later(3200,()=>{reshuffle();nextPrompt()})}
-function party(){$('ask').hidden=true;SFX.fanfare();say('Hooray! Five stars! You are amazing!');
+function party(){$('ask').hidden=true;SFX.fanfare();say(pick(['Hooray! Five stars! You are amazing!','Wow, five stars! Party time!','Five stars! You are a super finder!']));
   for(let k=0;k<12;k++)later(k*180,()=>{const b=balloon(rnd(W*0.05,W*0.95),H+40);});
   for(let k=0;k<4;k++)later(k*400,()=>confetti(rnd(W*0.2,W*0.8),rnd(H*0.15,H*0.45),26));
   later(5200,()=>{stars=0;drawJar();reshuffle();nextPrompt()})}
 setInterval(()=>{if(!started||!want||document.hidden)return;if(Date.now()-lastTap<9000)return;lastTap=Date.now();
   const w=whereIs(want);const g=w.type==='bush'?E.bushes[w.i]:w.type==='pond'?E.pond:E.tree;
   anim(g.inner,[{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:900});
-  const p=w.type==='tree'?gpos(g,60,-300):gpos(g,0,-60);sparkle(p.x,p.y);say(`Where's the ${NAMES[want]}? Have a look!`)},1000);
+  const p=w.type==='tree'?gpos(g,60,-300):gpos(g,0,-60);sparkle(p.x,p.y);say(LINES.hint(NAMES[want]))},1000);
 
 /* ---------- input ---------- */
 svg.addEventListener('pointerdown',e=>{if(!started)return;e.preventDefault();lastTap=Date.now();A();
@@ -454,7 +477,7 @@ svg.addEventListener('pointerdown',e=>{if(!started)return;e.preventDefault();las
   if(found)foundIt(type==='tree'?gpos(E.tree,60,-300):type==='pond'?gpos(E.pond,44,-40):gpos(hit,0,-150))});
 svg.addEventListener('contextmenu',e=>e.preventDefault());
 
-$('ask').onclick=()=>{if(!want)return;const a=$('ask');a.classList.remove('wiggle');void a.offsetWidth;a.classList.add('wiggle');say(`Can you find the ${NAMES[want]}?`);SFX.pop()};
+$('ask').onclick=()=>{if(!want)return;const a=$('ask');a.classList.remove('wiggle');void a.offsetWidth;a.classList.add('wiggle');say(LINES.ask(NAMES[want]));SFX.pop()};
 $('playBtn').onclick=()=>{A();SFX.cheer();started=true;$('start').hidden=true;drawJar();
   try{const u=new SpeechSynthesisUtterance('');speechSynthesis.speak(u)}catch(e){}
   if(opts.find)later(500,nextPrompt);else later(300,()=>say('Tap anything!'));
@@ -470,6 +493,11 @@ gear.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDe
   if(key==='voice'&&!opts.voice){try{speechSynthesis.cancel()}catch(e){}}});
 $('panelDone').onclick=()=>{$('panel').hidden=true;drawJar();if(opts.find&&!want&&started)nextPrompt();if(!opts.find){want=null;$('ask').hidden=true}};
 
+function fillVoiceList(){const sel=document.getElementById('vSel');if(!sel)return;const vs=englishVoices();sel.innerHTML='';
+  if(!vs.length){const o=document.createElement('option');o.textContent='Device default';sel.appendChild(o);sel.disabled=true;return}
+  sel.disabled=false;vs.slice(0,25).forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name.replace(/^(Microsoft|Google)\s+/,'').replace(/\s+Online\s+\(Natural\)/,' (natural)')+' · '+v.lang;if(voice&&v.name===voice.name)o.selected=true;sel.appendChild(o)})}
+$('vSel').onchange=e=>{opts.voiceName=e.target.value;saveOpts();pickVoice();say(pick(['Hello! Can you find the bunny?','Hi there! Let\'s play!']))};
+$('vTry').onclick=()=>{const was=opts.voice;opts.voice=true;say('Hello! Can you find the bunny?');opts.voice=was};
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(layout,150)});
 layout();drawJar();
 /* ambient life: a butterfly now and then, and a gentle rustle as a clue */
