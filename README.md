@@ -16,4 +16,10 @@ Open `index.html` in a browser, or turn on GitHub Pages for this repo (Settings 
 
 Everything is drawn in SVG and every sound is generated in the browser, so there are no image or audio files.
 
+## Updates
+
+The game checks for a newer version when it opens and when you come back to it. If there is one, players see a small "A new version is ready" notice with an **Update** button, and there's a **Get the latest version** button in the menu at any time.
+
+When pushing an update: change the game's version number and put the same value in `version.json`.
+
 © 2026 kralnu90. All rights reserved.
