@@ -5,7 +5,7 @@ A gentle tap-and-find game for little ones, from **Kralnu Games**. [kralnugames.
 Pick a place to visit: the **meadow**, the **farm** or the **beach**. Everything does something when you tap it: animals pop out of their hiding places, the sun giggles, clouds rain flowers and balloons float up to be popped. A friendly voice asks "Can you find the duck?" with a picture, so no reading is needed. Finding it earns a star, and five stars starts a balloon party. Nobody ever loses.
 
 - **Three places, fifteen animals:** a bunny, hedgehog, fox, frog and bird in the meadow; a cow, pig, sheep, chick and duck on the farm; a crab, turtle, seal, dolphin and seagull at the beach
-- **Colouring:** eight pictures to colour in with twelve big, bright colours (purple included, of course). The voice names each colour as it's picked
+- **Colouring:** eight pictures to colour in with twelve big, bright colours. The voice names each colour as it's picked
 - **Bedtime wind-down:** tap the moon, or set it to happen after a set amount of play. The sun sets, the scene gets dark, the moon and stars come out, and each animal says goodnight and falls asleep. Tap the sun to wake everyone up again
 - No ads, no chat, nothing to buy, no data collected
 - Works in any phone or tablet browser
